@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Шаг в пропасть</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #0a0908;
+    --panel: #16110f;
+    --panel-2: #1e1714;
+    --line: #372a24;
+    --ink: #ece4d8;
+    --ink-dim: #9a8f83;
+    --gold: #cf9f2e;
+    --gold-soft: #8a742f;
+    --crimson: #9c2a35;
+    --crimson-soft: #5c2129;
+    --heal: #5a7a5e;
+    --danger: #b3492f;
+    --radius: 14px;
+    --shadow: 0 20px 60px rgba(0,0,0,0.55);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(circle at 50% -10%, #241a15 0%, var(--void) 55%);
+    color: var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding: 28px 16px 60px;
+  }
+  #app{ max-width: 720px; margin: 0 auto; }
+  .brand{
+    text-align:center; margin-bottom: 28px;
+  }
+  .brand h1{
+    font-family:'Cinzel', serif;
+    font-weight:700;
+    font-size: 2.1rem;
+    letter-spacing: 0.04em;
+    margin: 0 0 4px;
+    background: linear-gradient(180deg, #f0d98a 0%, var(--gold) 55%, #8a6a1c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 24px rgba(207,159,46,0.15);
+  }
+  .brand .sub{ font-family:'Cormorant Garamond', serif; font-style:italic; color: var(--ink-dim); font-size: 1.05rem;}
+  .card{
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .card h2{
+    font-family:'Cinzel', serif; font-weight:600; font-size:1.15rem; letter-spacing:0.03em;
+    margin: 0 0 14px; color: var(--gold);
+    display:flex; align-items:center; gap:10px;
+  }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  label{ display:block; font-size:0.8rem; color:var(--ink-dim); margin-bottom:6px; letter-spacing:0.02em; text-transform:uppercase;}
+  input[type=text], input[type=number]{
+    width:100%; background: #0d0a08; border:1px solid var(--line); color:var(--ink);
+    padding: 12px 14px; border-radius: 10px; font-size:1rem; font-family:'Inter',sans-serif;
+    outline:none; transition: border-color .15s;
+  }
+  input:focus{ border-color: var(--gold); }
+  .field{ flex:1; min-width:140px; margin-bottom:14px;}
+  button{
+    font-family:'Inter', sans-serif; font-weight:600; font-size:0.95rem;
+    border:none; border-radius: 10px; padding: 13px 20px; cursor:pointer;
+    transition: transform .08s ease, filter .15s ease; letter-spacing:0.01em;
+  }
+  button:active{ transform: scale(0.97); }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn-gold{ background: linear-gradient(180deg,#e0b84a,var(--gold)); color:#25190a; }
+  .btn-gold:hover:not(:disabled){ filter:brightness(1.08); }
+  .btn-crimson{ background: linear-gradient(180deg,#c04252,var(--crimson)); color:#fff0ef; }
+  .btn-crimson:hover:not(:disabled){ filter:brightness(1.08); }
+  .btn-ghost{ background: transparent; border:1px solid var(--line); color: var(--ink); }
+  .btn-ghost:hover:not(:disabled){ border-color: var(--gold-soft); color:var(--gold); }
+  .btn-block{ width:100%; }
+  .role-toggle{ display:flex; gap:10px; }
+  .role-opt{
+    flex:1; text-align:center; padding: 16px 10px; border-radius:10px; border:1.5px solid var(--line);
+    cursor:pointer; font-family:'Cinzel',serif; letter-spacing:0.04em; font-size:0.95rem; color:var(--ink-dim);
+    transition: all .15s;
+  }
+  .role-opt.angel.sel{ border-color: var(--gold); color: var(--gold); background: rgba(207,159,46,0.08); }
+  .role-opt.demon.sel{ border-color: var(--crimson); color: #e5828c; background: rgba(156,42,53,0.1); }
+  .role-opt:hover{ border-color: var(--ink-dim); }
+  .code-display{
+    font-family:'Cinzel', serif; font-size:2.2rem; letter-spacing: 0.25em; text-align:center;
+    color:var(--gold); padding: 14px 0; user-select:all;
+  }
+  .muted{ color: var(--ink-dim); font-size:0.88rem; line-height:1.5; }
+  .player-list{ display:flex; flex-direction:column; gap:8px; }
+  .player-row{
+    display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;
+    background: rgba(255,255,255,0.02); border:1px solid var(--line);
+  }
+  .player-row.dead{ opacity:0.4; }
+  .player-row .name{ flex:1; font-weight:600; }
+  .hp-wrap{ width: 110px; }
+  .hp-track{ height:8px; border-radius:6px; background:#0d0a08; overflow:hidden; border:1px solid var(--line);}
+  .hp-fill{ height:100%; background: linear-gradient(90deg, var(--crimson), var(--gold)); transition: width .4s ease; }
+  .hp-label{ font-size:0.72rem; color:var(--ink-dim); margin-top:3px; text-align:right;}
+  .tag{ font-size:0.7rem; padding:3px 8px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim); font-family:'Cinzel',serif; letter-spacing:0.03em;}
+  .tag.host{ color:var(--gold); border-color: var(--gold-soft); }
+  .tag.you{ color:#8bd0a0; border-color:#3a5c44; }
+  .tag.demon{ color:#e5828c; border-color:var(--crimson-soft); }
+  .tag.angel{ color:var(--gold); border-color:var(--gold-soft); }
+  .divider{ height:1px; background: var(--line); margin: 16px 0; }
+  .edge-track{ position:relative; height:70px; margin: 18px 0 30px; }
+  .edge-line{ position:absolute; top:32px; left:0; right:0; height:2px; background: linear-gradient(90deg, transparent, var(--line) 10%, var(--line) 90%, transparent); }
+  .edge-mark{ position:absolute; top:0; transform: translateX(-50%); text-align:center; width:56px; }
+  .edge-dot{ width:14px; height:14px; border-radius:50%; margin:0 auto 4px; background: var(--ink-dim); border:2px solid var(--void); box-shadow:0 0 0 1px var(--line); }
+  .edge-mark.winner .edge-dot{ background: var(--gold); box-shadow: 0 0 14px rgba(207,159,46,0.7); }
+  .edge-mark.demonrole .edge-dot{ background: var(--crimson); box-shadow: 0 0 14px rgba(156,42,53,0.7); }
+  .edge-mark .nm{ font-size:0.68rem; color:var(--ink-dim); white-space:nowrap; }
+  .edge-mark.winner .nm{ color:var(--gold); font-weight:700; }
+  .edge-t{ position:absolute; top:-18px; transform: translateX(-50%); font-family:'Cinzel',serif; font-size:0.7rem; color:var(--ink-dim); letter-spacing:0.05em;}
+  .edge-t-line{ position:absolute; top:0; bottom:0; width:2px; background: var(--gold-soft); }
+  .log{ max-height: 220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+  .log-item{ font-size:0.85rem; color: var(--ink-dim); line-height:1.5; padding-bottom:8px; border-bottom:1px dashed var(--line); }
+  .log-item:last-child{ border-bottom:none; }
+  .log-item b{ color: var(--ink); font-weight:600; }
+  details{ margin-bottom:18px; }
+  summary{ cursor:pointer; font-family:'Cinzel',serif; color:var(--gold); letter-spacing:0.03em; padding:4px 0; }
+  .rules-body{ font-size:0.86rem; line-height:1.65; color: var(--ink-dim); margin-top:10px; }
+  .rules-body h4{ color:var(--ink); font-family:'Cinzel',serif; font-size:0.9rem; margin: 14px 0 4px; }
+  .center{ text-align:center; }
+  .pulse{ animation: pulse 1.6s infinite ease-in-out; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.45;} }
+  .err{ color:#e58080; font-size:0.85rem; margin-top:8px; }
+  .waiting-names{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .waiting-chip{ font-size:0.78rem; padding:5px 10px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim); }
+  .waiting-chip.done{ border-color: var(--gold-soft); color: var(--gold); }
+  .big-num{ font-family:'Cinzel',serif; font-size:1.4rem; color:var(--gold); }
+  .table-mini{ width:100%; border-collapse:collapse; font-size:0.87rem; }
+  .table-mini th{ text-align:left; color:var(--ink-dim); font-weight:500; padding: 6px 8px; border-bottom:1px solid var(--line); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.03em;}
+  .table-mini td{ padding: 8px 8px; border-bottom:1px solid var(--line); }
+  .table-mini tr.winner-row td{ color: var(--gold); font-weight:600; }
+  .footer-note{ text-align:center; color: var(--ink-dim); font-size:0.75rem; margin-top: 24px; }
+  .avatar-grid{ display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+  .avatar-opt{ padding:6px; border-radius:12px; border:1.5px solid var(--line); cursor:pointer; transition: all .15s; }
+  .avatar-opt:hover{ border-color: var(--ink-dim); }
+  .avatar-opt.sel{ border-color: var(--gold); background: rgba(207,159,46,0.1); box-shadow: 0 0 10px rgba(207,159,46,0.25); }
+  .player-row .avatar-badge{ flex-shrink:0; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+
+  // ---------- utils ----------
+  function randId(){ return 'p_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); }
+  function randRoomCode(){
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s=''; for(let i=0;i<5;i++) s += chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+  function nameOf(state, id){ const p = state.players.find(p=>p.id===id); return p? p.name : '???'; }
+  function esc(s){ const d=document.createElement('div'); d.innerText=s; return d.innerHTML; }
+
+  // Original minimalist icon set (not based on any existing character/IP)
+  const AVATARS = [
+    { id:'mask',   name:'Маска',   color:'#cf9f2e', path:'M4 12c2-4 6-6 8-6s6 2 8 6c-2 4-6 6-8 6s-6-2-8-6z M9 12a1.4 1.4 0 1 0 0.1 0 M15 12a1.4 1.4 0 1 0 0.1 0' },
+    { id:'flame',  name:'Пламя',   color:'#c0562f', path:'M12 3c1 3-2 4-2 7a2 2 0 0 0 4 0c0-1-1-1.5-1-2.5 1.5 1 3 3 3 5.5a4 4 0 0 1-8 0c0-4 3-5 4-10z' },
+    { id:'claw',   name:'Коготь',  color:'#9c2a35', path:'M6 4 L9 14 M11 3 L12.5 15 M17 4 L15 14 M8 15 Q12 20 16 15' },
+    { id:'feather',name:'Перо',    color:'#5a7a5e', path:'M12 3c4 1 6 5 6 9s-3 8-6 9c0-2 1-3 1-5-2 1-4 0-5-1 2 0 3-1 4-2-2 0-4-1-4.5-3 2 1 3.5 0 4.5-1-2-1-3-2-3-4 1.5 1 2.5 1.5 3 2-0.5-1.5 0-3 0-4z' },
+    { id:'blade',  name:'Клинок',  color:'#8a742f', path:'M12 2 L14 14 L12 22 L10 14 Z M8 14 L16 14' },
+    { id:'shadow', name:'Тень',    color:'#5c4a63', path:'M12 3a9 9 0 1 0 0.001 0 M12 5a7 7 0 0 1 0 14 5 5 0 0 0 0-14z' },
+    { id:'moon',   name:'Луна',    color:'#4a6a8a', path:'M15 3a9 9 0 1 0 6 15 8 8 0 0 1-6-15z' },
+    { id:'bolt',   name:'Молния',  color:'#b39a2f', path:'M13 2 L5 14 h5 l-2 8 10-13 h-5 z' },
+    { id:'skull',  name:'Череп',   color:'#6b6259', path:'M12 3a7 7 0 0 0-7 7c0 3 2 4 2 6h10c0-2 2-3 2-6a7 7 0 0 0-7-7z M9 20h6 M9.5 11a1.3 1.3 0 1 0 0.1 0 M14.5 11a1.3 1.3 0 1 0 0.1 0' },
+    { id:'crown',  name:'Корона',  color:'#c9a227', path:'M4 18h16 M4 18 L3 8 L8 12 L12 5 L16 12 L21 8 L20 18' }
+  ];
+  function avatarById(id){ return AVATARS.find(a=>a.id===id) || AVATARS[0]; }
+  function avatarSvg(id, size){
+    const a = avatarById(id); size = size || 30;
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" style="display:block">
+      <circle cx="12" cy="12" r="11.5" fill="${a.color}22" stroke="${a.color}" stroke-width="1"/>
+      <path d="${a.path}" fill="none" stroke="${a.color}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+  }
+
+  let lastStorageError = '';
+  const KVDB_BASE = 'https://kvdb.io';
+
+  // Creates a fresh, isolated storage "bucket" for one game. The returned
+  // bucket id becomes the room code players share with each other.
+  async function createBucket(){
+    try{
+      const res = await fetch(KVDB_BASE + '/', { method:'POST' });
+      if(!res.ok) throw new Error('Сервер ответил ошибкой ' + res.status);
+      const id = (await res.text()).trim();
+      if(!id) throw new Error('Сервер не вернул код комнаты.');
+      return id;
+    }catch(e){
+      lastStorageError = (e && e.message) ? e.message : String(e);
+      return null;
+    }
+  }
+
+  async function getRoom(bucket){
+    try{
+      const res = await fetch(`${KVDB_BASE}/${bucket}/state`, { method:'GET', cache:'no-store' });
+      if(res.status===404) return null; // genuinely no such room/key yet
+      if(!res.ok) throw new Error('Сервер ответил ошибкой ' + res.status);
+      const text = await res.text();
+      if(!text) return null;
+      return JSON.parse(text);
+    }catch(e){
+      const msg = (e && e.message) ? e.message : String(e);
+      lastStorageError = msg;
+      return null;
+    }
+  }
+  async function setRoom(bucket, state){
+    try{
+      const res = await fetch(`${KVDB_BASE}/${bucket}/state`, {
+        method:'PUT',
+        headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify(state)
+      });
+      if(!res.ok) throw new Error('Сервер ответил ошибкой ' + res.status);
+      return true;
+    }catch(e){
+      console.error('storage set failed', e);
+      lastStorageError = (e && e.message) ? e.message : String(e);
+      return false;
+    }
+  }
+
+  async function selfTestBackend(){
+    lastStorageError = '';
+    const bucket = await createBucket();
+    if(!bucket) return { ok:false, error: lastStorageError || 'не удалось создать хранилище' };
+    const wrote = await setRoom(bucket, {ping:'pong', t:Date.now()});
+    if(!wrote) return { ok:false, error: lastStorageError || 'не удалось записать данные' };
+    const read = await getRoom(bucket);
+    if(!read || read.ping!=='pong') return { ok:false, error: lastStorageError || 'запись прошла, но чтение не вернуло те же данные' };
+    return { ok:true };
+  }
+
+  // ---------- local session ----------
+  let myId = null;
+  let myName = '';
+  let myAvatar = AVATARS[0].id;
+  let roomCode = null;
+  let localState = null;
+  let pollTimer = null;
+  let uiError = '';
+  let roleChoice = null; // for betting form, transient
+  let betChoice = 50;
+
+  function nameOfMe(){ return myName; }
+
+  // ---------- game state helpers ----------
+  function newRoomState(code, hostId, hostName, hostAvatar){
+    return {
+      code, hostId, phase:'lobby', round:0,
+      players:[{id:hostId, name:hostName, avatar:hostAvatar, hp:100, alive:true}],
+      duelConverted:false,
+      bets:{}, lastRoundResult:null, accusations:{},
+      log:[{round:0,text:`Комната создана. ${hostName} готовит пропасть...`}],
+      gameOver:false, winnerName:null
+    };
+  }
+
+  function computeRound(state){
+    const alive = state.players.filter(p=>p.alive);
+    const n = alive.length;
+    const bets = alive.map(p=>({id:p.id, name:p.name, n:state.bets[p.id].n, role:state.bets[p.id].role}));
+    const sum = bets.reduce((a,b)=>a+b.n,0);
+    const avg = sum/n;
+    const isDuel = n===2;
+    const T = isDuel ? Math.round(avg*0.8) : Math.round(avg);
+    const withDiff = bets.map(b=>({...b, diff: Math.abs(b.n-T)}));
+    const minDiff = Math.min(...withDiff.map(b=>b.diff));
+    const closest = withDiff.filter(b=>b.diff===minDiff);
+
+    const logLines = [];
+    const patch = {};
+    const applyDelta = (id,d)=>{ patch[id]=(patch[id]||0)+d; };
+    let lastRoundResult, needsAccusation=false;
+
+    if(isDuel && closest.length===2 && closest[0].role!==closest[1].role){
+      const demon = closest.find(c=>c.role==='Демон');
+      const angel = closest.find(c=>c.role==='Ангел');
+      applyDelta(angel.id, -5);
+      logLines.push(`Раунд ${state.round}: Дуэль, T=${T}. Оба игрока одинаково близки — противостояние решает Демон. ${angel.name} теряет 5 HP.`);
+      lastRoundResult = {
+        round: state.round, T, isDuel,
+        entries: withDiff.map(b=>({id:b.id,name:b.name,bet:b.n,diff:b.diff})),
+        winnerId: demon.id, winnerBet: demon.n, winnerRole:'Демон', roleRevealed:true,
+        special:'duel_tie_angel_demon', tiedIds: closest.map(c=>c.id),
+        loserIds: [], resolved:true
+      };
+    } else if(closest.length>=2){
+      const sameBet = closest.every(c=>c.n===closest[0].n);
+      if(sameBet){
+        closest.forEach(c=>applyDelta(c.id,-5));
+        logLines.push(`Раунд ${state.round}: T=${T}. ${closest.map(c=>c.name).join(', ')} поставили одинаково и оказались ближе всех — штраф 5 HP каждому. Победителя нет.`);
+      } else {
+        logLines.push(`Раунд ${state.round}: T=${T}. Ничья между ${closest.map(c=>c.name).join(', ')} — победителя нет.`);
+      }
+      const losers = withDiff.filter(b=> !closest.find(c=>c.id===b.id) );
+      losers.forEach(l=>applyDelta(l.id,-l.diff));
+      lastRoundResult = {
+        round: state.round, T, isDuel,
+        entries: withDiff.map(b=>({id:b.id,name:b.name,bet:b.n,diff:b.diff})),
+        winnerId:null, tiedIds: closest.map(c=>c.id), sameBetTie: sameBet,
+        loserIds: [], resolved:true
+      };
+    } else {
+      const winner = closest[0];
+      const losers = withDiff.filter(b=>b.id!==winner.id);
+      losers.forEach(l=>applyDelta(l.id,-l.diff));
+      let stolen = 0;
+      if(winner.role==='Демон'){
+        stolen = losers.reduce((a,b)=>a+b.diff,0);
+        applyDelta(winner.id, stolen);
+      }
+      logLines.push(`Раунд ${state.round}: T=${T}. Ближе всех — ${winner.name} (ставка ${winner.n}).`);
+      needsAccusation = losers.length>0;
+      lastRoundResult = {
+        round: state.round, T, isDuel,
+        entries: withDiff.map(b=>({id:b.id,name:b.name,bet:b.n,diff:b.diff})),
+        winnerId: winner.id, winnerBet: winner.n, winnerRole: winner.role, stolen,
+        loserIds: losers.map(l=>l.id), resolved: !needsAccusation, roleRevealed:false
+      };
+    }
+    return {patch, logLines, lastRoundResult, needsAccusation};
+  }
+
+  function finalizeRound(state){
+    state.players = state.players.map(p=> p.hp<=0 ? {...p, alive:false, hp:0} : p);
+    const aliveList = state.players.filter(p=>p.alive);
+    if(aliveList.length<=1){
+      state.gameOver = true;
+      state.phase = 'gameover';
+      state.winnerName = aliveList[0] ? aliveList[0].name : null;
+      state.log.push({round:state.round, text: aliveList[0] ? `Пропасть выбрала последнего: ${aliveList[0].name} побеждает!` : 'Пропасть поглотила всех. Победителя нет.'});
+    } else if(aliveList.length===2 && !state.duelConverted){
+      state.players = state.players.map(p=>{
+        if(!p.alive) return p;
+        let newHp;
+        if(p.hp===100) newHp = 33; else newHp = Math.max(1, Math.round(p.hp/3));
+        return {...p, hp:newHp};
+      });
+      state.duelConverted = true;
+      state.log.push({round:state.round, text:`Остались двое. Начинается Дуэль — здоровье пересчитано.`});
+    }
+  }
+
+  function applyPatch(state, patch){
+    state.players = state.players.map(p=> patch[p.id] ? {...p, hp: clamp(p.hp + patch[p.id], 0, 999)} : p);
+  }
+
+  // ---------- actions ----------
+  let creatingRoom = false;
+  async function createRoom(){
+    uiError='';
+    if(!myName.trim()){ uiError='Введите имя.'; render(); return; }
+    if(creatingRoom) return;
+    creatingRoom = true;
+    uiError = '__creating__'; render();
+    myId = randId();
+    const code = await createBucket();
+    if(!code){
+      creatingRoom=false;
+      uiError = 'Не удалось создать комнату на сервере: ' + (lastStorageError||'неизвестная ошибка') + '. Попробуйте ещё раз через пару секунд.';
+      render(); return;
+    }
+    const state = newRoomState(code, myId, myName.trim(), myAvatar);
+    const ok = await setRoom(code, state);
+    creatingRoom = false;
+    if(!ok){ uiError='Не удалось создать комнату: ' + (lastStorageError||'неизвестная ошибка') + '. Попробуйте ещё раз.'; render(); return; }
+    uiError='';
+    roomCode = code; localState = state;
+    startPolling();
+    render();
+  }
+
+  async function joinRoom(codeInput){
+    uiError='';
+    const code = (codeInput||'').trim();
+    if(!myName.trim()){ uiError='Введите имя.'; render(); return; }
+    if(!code){ uiError='Введите код комнаты.'; render(); return; }
+    lastStorageError = '';
+    const fresh = await getRoom(code);
+    if(!fresh){
+      if(lastStorageError){
+        uiError = 'Не удалось прочитать комнату с сервера: ' + lastStorageError + '. Проверьте подключение к интернету и код, попробуйте снова.';
+      } else {
+        uiError = 'Комната не найдена. Проверьте код — его нужно скопировать точно, с учётом регистра букв.';
+      }
+      render(); return;
+    }
+    if(fresh.phase!=='lobby'){ uiError='Игра уже началась — присоединиться нельзя.'; render(); return; }
+    if(fresh.players.length>=7){ uiError='Комната заполнена (макс. 7 игроков).'; render(); return; }
+    myId = randId();
+    fresh.players.push({id:myId, name:myName.trim(), avatar:myAvatar, hp:100, alive:true});
+    fresh.log.push({round:0, text:`${myName.trim()} входит в комнату.`});
+    const ok = await setRoom(code, fresh);
+    if(!ok){ uiError='Не удалось войти: ' + (lastStorageError||'неизвестная ошибка') + '. Попробуйте ещё раз.'; render(); return; }
+    roomCode = code; localState = fresh;
+    startPolling();
+    render();
+  }
+
+  async function startGame(){
+    const fresh = await getRoom(roomCode);
+    if(!fresh || fresh.phase!=='lobby') return;
+    if(fresh.players.length<3){ uiError='Нужно минимум 3 игрока.'; render(); return; }
+    fresh.phase='betting'; fresh.round=1; fresh.bets={};
+    fresh.log.push({round:1, text:'Раунд 1 начался. Все делают ставки.'});
+    await setRoom(roomCode, fresh);
+    localState = fresh; render();
+  }
+
+  async function submitBet(n, role){
+    if(!role){ uiError='Выберите роль.'; render(); return; }
+    n = clamp(Math.round(n),1,100);
+    const fresh = await getRoom(roomCode);
+    if(!fresh || fresh.phase!=='betting') return;
+    fresh.bets[myId] = {n, role};
+    await setRoom(roomCode, fresh);
+    localState = fresh; render();
+    await tryResolveRound();
+  }
+
+  async function tryResolveRound(){
+    const fresh = await getRoom(roomCode);
+    if(!fresh || fresh.phase!=='betting') return;
+    const aliveIds = fresh.players.filter(p=>p.alive).map(p=>p.id);
+    const betIds = Object.keys(fresh.bets);
+    if(!aliveIds.every(id=>betIds.includes(id))) return;
+    const {patch, logLines, lastRoundResult, needsAccusation} = computeRound(fresh);
+    const ns = deepClone(fresh);
+    applyPatch(ns, patch);
+    ns.log = [...ns.log, ...logLines.map(t=>({round:fresh.round, text:t}))];
+    ns.lastRoundResult = lastRoundResult;
+    ns.bets = {};
+    ns.accusations = {};
+    ns.phase = needsAccusation ? 'accusation' : 'reveal';
+    if(!needsAccusation){ finalizeRound(ns); }
+    // optimistic: re-check phase still betting before writing
+    const check = await getRoom(roomCode);
+    if(!check || check.phase!=='betting') return; // someone else already resolved
+    await setRoom(roomCode, ns);
+    localState = ns; render();
+  }
+
+  async function submitAccusation(choice){
+    const fresh = await getRoom(roomCode);
+    if(!fresh || fresh.phase!=='accusation' || !fresh.lastRoundResult || fresh.lastRoundResult.resolved) { render(); return; }
+    if(!fresh.lastRoundResult.loserIds.includes(myId)) return;
+    if(fresh.accusations[myId]) return;
+    const ns = deepClone(fresh);
+    ns.accusations[myId] = choice;
+    const lrr = ns.lastRoundResult;
+    const patch = {};
+    const logLines = [];
+    if(choice==='accuse'){
+      if(lrr.winnerRole==='Демон'){
+        patch[lrr.winnerId] = (patch[lrr.winnerId]||0) - lrr.stolen - 2*lrr.winnerBet;
+        lrr.loserIds.forEach(lid=>{
+          const entry = lrr.entries.find(e=>e.id===lid);
+          patch[lid] = (patch[lid]||0) + entry.diff;
+        });
+        logLines.push(`${nameOf(ns,myId)} обвиняет верно! ${nameOf(ns,lrr.winnerId)} был Демоном — урон возвращён проигравшим, Демон наказан вдвойне.`);
+        lrr.resolved = true;
+        lrr.roleRevealed = true;
+      } else {
+        patch[myId] = (patch[myId]||0) - 15;
+        logLines.push(`${nameOf(ns,myId)} обвиняет, но ошибается — ${nameOf(ns,lrr.winnerId)} был Ангелом. Клевета стоит 15 HP.`);
+      }
+    } else {
+      logLines.push(`${nameOf(ns,myId)} смиряется. Роль победителя раскрыта: ${lrr.winnerRole}.`);
+      lrr.roleRevealed = true;
+    }
+    applyPatch(ns, patch);
+    ns.log = [...ns.log, ...logLines.map(t=>({round:ns.round, text:t}))];
+    if(!lrr.resolved){
+      const allDecided = lrr.loserIds.every(id => ns.accusations[id]);
+      if(allDecided) lrr.resolved = true;
+    }
+    if(lrr.resolved){
+      ns.phase = 'reveal';
+      finalizeRound(ns);
+    }
+    await setRoom(roomCode, ns);
+    localState = ns; render();
+  }
+
+  async function nextRound(){
+    const fresh = await getRoom(roomCode);
+    if(!fresh || fresh.phase!=='reveal') return;
+    const ns = deepClone(fresh);
+    ns.round += 1; ns.phase='betting'; ns.bets={}; ns.accusations={};
+    ns.log.push({round: ns.round, text:`Раунд ${ns.round} начался.`});
+    await setRoom(roomCode, ns);
+    localState = ns; render();
+  }
+
+  async function playAgain(){
+    const fresh = await getRoom(roomCode);
+    if(!fresh || fresh.phase!=='gameover') return;
+    const ns = deepClone(fresh);
+    ns.phase='lobby'; ns.round=0; ns.duelConverted=false; ns.bets={}; ns.accusations={};
+    ns.lastRoundResult=null; ns.gameOver=false; ns.winnerName=null;
+    ns.players = ns.players.map(p=>({...p, hp:100, alive:true}));
+    ns.log = [{round:0, text:'Новая партия. Пропасть ждёт снова.'}];
+    await setRoom(roomCode, ns);
+    localState = ns; render();
+  }
+
+  function startPolling(){
+    if(pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(async ()=>{
+      if(!roomCode) return;
+      const fresh = await getRoom(roomCode);
+      if(fresh){
+        localState = fresh;
+        render();
+        if(fresh.phase==='betting') tryResolveRound();
+      }
+    }, 2200);
+  }
+
+  // ---------- rendering ----------
+  const RULES_HTML = `
+    <h4>Цель</h4>
+    Выжить, сохранив HP. 0 HP — выбывание. Побеждает последний живой.
+    <h4>Ход раунда</h4>
+    Каждый живой игрок скрыто выбирает ставку (1–100) и роль — Ангел или Демон.
+    Целевое число T = среднее всех ставок (в Дуэли 1×1 — среднее × 0.8), округляется.
+    Ближе всех к T — победитель раунда.
+    <h4>Урон</h4>
+    Проигравшие теряют HP, равный своей разнице со значением T.
+    Если победитель — Демон, он скрыто забирает себе всю сумму урона проигравших. Его роль не раскрывается автоматически.
+    Если 2+ игрока поставили одинаковое число и оказались ближе всех — победителя нет, каждый из них теряет 5 HP.
+    Если ближе всех оказались игроки с разными числами — ничья, победителя нет, урона у них нет.
+    <h4>Дуэль (1×1)</h4>
+    Когда остаются двое, их HP пересчитывается разово: было 100 → 33; иначе — делится на 3 (не меньше 1).
+    Если в дуэли оба одинаково близки к T и роли разные — Демон побеждает автоматически, Ангел теряет 5 HP, обвинения нет.
+    Если роли одинаковые — обычная ничья, без последствий.
+    <h4>Обвинение</h4>
+    После раунда каждый проигравший решает: обвинить победителя в том, что он Демон, или смириться.
+    Верное обвинение: у Демона забирается весь украденный HP + штраф в виде двух его ставок; всем проигравшим этого раунда возвращается урон. Остальные уже не выбирают.
+    Неверное обвинение: обвинивший теряет 15 HP за клевету.
+    Смирение: роль победителя раскрывается в журнале, без последствий.
+  `;
+
+  function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstElementChild; }
+
+  function hpBar(p){
+    const pct = clamp(p.hp,0,100);
+    return `<div class="hp-wrap">
+      <div class="hp-track"><div class="hp-fill" style="width:${pct}%"></div></div>
+      <div class="hp-label">${p.hp} HP</div>
+    </div>`;
+  }
+
+  function playerListHtml(state, opts){
+    opts = opts||{};
+    return `<div class="player-list">` + state.players.map(p=>{
+      const tags = [];
+      if(p.id===state.hostId) tags.push(`<span class="tag host">хозяин</span>`);
+      if(p.id===myId) tags.push(`<span class="tag you">вы</span>`);
+      if(!p.alive) tags.push(`<span class="tag">выбыл</span>`);
+      return `<div class="player-row ${p.alive?'':'dead'}">
+        <span class="avatar-badge">${avatarSvg(p.avatar, 30)}</span>
+        <span class="name">${esc(p.name)}</span>
+        ${tags.join('')}
+        ${opts.showHp!==false ? hpBar(p) : ''}
+      </div>`;
+    }).join('') + `</div>`;
+  }
+
+  function edgeTrackHtml(lrr, state){
+    const T = lrr.T;
+    const marks = lrr.entries.map(e=>{
+      const pos = clamp(e.bet,1,100);
+      const isWinner = lrr.winnerId===e.id || (lrr.tiedIds && lrr.tiedIds.includes(e.id) && !lrr.winnerId && lrr.sameBetTie);
+      const isDemonRevealed = lrr.roleRevealed && lrr.winnerId===e.id && lrr.winnerRole==='Демон';
+      const p = state.players.find(pl=>pl.id===e.id);
+      return `<div class="edge-mark ${isWinner?'winner':''} ${isDemonRevealed?'demonrole':''}" style="left:${pos}%">
+        <div class="edge-dot"></div>
+        <div class="nm">${p?avatarSvg(p.avatar,16):''}${esc(e.name)}<br>${e.bet}</div>
+      </div>`;
+    }).join('');
+    return `<div class="edge-track">
+      <div class="edge-t-line" style="left:${clamp(T,1,100)}%"></div>
+      <div class="edge-t" style="left:${clamp(T,1,100)}%">T=${T}</div>
+      <div class="edge-line"></div>
+      ${marks}
+    </div>`;
+  }
+
+  function logHtml(state, roundFilter){
+    let items = state.log;
+    if(roundFilter!==undefined) items = items.filter(l=>l.round===roundFilter);
+    items = items.slice(-40);
+    return `<div class="log">` + items.map(l=>`<div class="log-item">${esc(l.text)}</div>`).join('') + `</div>`;
+  }
+
+  function rulesAccordion(){
+    return `<details><summary>Правила игры</summary><div class="rules-body">${RULES_HTML}</div></details>`;
+  }
+
+  function render(){
+    const app = document.getElementById('app');
+    app.innerHTML = '';
+    app.appendChild(el(`<div class="brand">
+      <h1>Шаг в пропасть</h1>
+      <div class="sub">игра доверия на краю числа</div>
+    </div>`));
+
+    if(!roomCode || !localState){
+      renderLanding(app);
+      return;
+    }
+
+    const state = localState;
+    const codeCard = el(`<div class="card center">
+      <div class="muted">код комнаты</div>
+      <div class="code-display" id="codeDisplayText">${esc(state.code)}</div>
+      <button class="btn-ghost" id="btnCopyCode" style="margin-top:4px">Скопировать код</button>
+      <div class="muted" style="margin-top:10px">отправьте код друзьям, чтобы они присоединились</div>
+    </div>`);
+    app.appendChild(codeCard);
+    codeCard.querySelector('#btnCopyCode').onclick = (ev)=>{
+      navigator.clipboard.writeText(state.code).then(()=>{
+        ev.target.textContent = 'Скопировано ✓';
+        setTimeout(()=>{ ev.target.textContent='Скопировать код'; }, 1600);
+      }).catch(()=>{});
+    };
+
+    app.appendChild(el(`<div class="card">${rulesAccordion()}</div>`));
+
+    if(state.phase==='lobby') return renderLobby(app, state);
+    if(state.phase==='betting') return renderBetting(app, state);
+    if(state.phase==='accusation') return renderAccusation(app, state);
+    if(state.phase==='reveal') return renderReveal(app, state);
+    if(state.phase==='gameover') return renderGameOver(app, state);
+  }
+
+  function avatarPickerHtml(idPrefix){
+    return `<div class="avatar-grid" id="${idPrefix}Grid">
+      ${AVATARS.map(a=>`<div class="avatar-opt ${a.id===myAvatar?'sel':''}" data-avatar="${a.id}" title="${esc(a.name)}">
+        ${avatarSvg(a.id, 34)}
+      </div>`).join('')}
+    </div>`;
+  }
+  function wireAvatarPicker(container, idPrefix){
+    container.querySelector('#'+idPrefix+'Grid').querySelectorAll('.avatar-opt').forEach(opt=>{
+      opt.onclick = ()=>{ myAvatar = opt.getAttribute('data-avatar'); render(); };
+    });
+  }
+
+  function renderLanding(app){
+    const card = el(`<div class="card">
+      <label>Ваш облик</label>
+      ${avatarPickerHtml('landing')}
+      <div class="divider"></div>
+      <h2>Создать комнату</h2>
+      <div class="field"><label>Ваше имя</label><input id="nameInput1" type="text" maxlength="20" placeholder="Например, Илья"></div>
+      <button class="btn-gold btn-block" id="btnCreate">Создать комнату</button>
+      <div class="divider"></div>
+      <h2>Присоединиться</h2>
+      <div class="row">
+        <div class="field"><label>Ваше имя</label><input id="nameInput2" type="text" maxlength="20" placeholder="Ваше имя"></div>
+        <div class="field"><label>Код комнаты</label><input id="codeInput" type="text" maxlength="5" placeholder="ABCDE" style="text-transform:uppercase"></div>
+      </div>
+      <button class="btn-ghost btn-block" id="btnJoin">Войти в комнату</button>
+      ${uiError? `<div class="err">${esc(uiError)}</div>`:''}
+    </div>`);
+    app.appendChild(card);
+    app.appendChild(el(`<div class="footer-note">3–7 игроков · каждый заходит со своего устройства по коду</div>`));
+
+    wireAvatarPicker(card, 'landing');
+    card.querySelector('#btnCreate').onclick = ()=>{ myName = card.querySelector('#nameInput1').value; createRoom(); };
+    card.querySelector('#btnJoin').onclick = ()=>{ myName = card.querySelector('#nameInput2').value; joinRoom(card.querySelector('#codeInput').value); };
+  }
+
+  function renderLobby(app, state){
+    const card = el(`<div class="card">
+      <h2>Комната ожидания (${state.players.length}/7)</h2>
+      ${playerListHtml(state,{showHp:false})}
+      <div class="divider"></div>
+      ${myId===state.hostId ? `
+        <button class="btn-gold btn-block" id="btnStart" ${state.players.length<3?'disabled':''}>Начать игру</button>
+        ${state.players.length<3? `<div class="muted" style="margin-top:8px">Нужно минимум 3 игрока.</div>`:''}
+      ` : `<div class="muted center">Ждём, пока хозяин комнаты начнёт игру...</div>`}
+      ${uiError? `<div class="err">${esc(uiError)}</div>`:''}
+    </div>`);
+    app.appendChild(card);
+    if(myId===state.hostId){
+      card.querySelector('#btnStart').onclick = startGame;
+    }
+  }
+
+  function renderBetting(app, state){
+    const me = state.players.find(p=>p.id===myId);
+    const alivePlayers = state.players.filter(p=>p.alive);
+    const submittedIds = Object.keys(state.bets);
+
+    app.appendChild(el(`<div class="card"><h2>Раунд ${state.round}</h2>${playerListHtml(state)}</div>`));
+
+    if(!me || !me.alive){
+      app.appendChild(el(`<div class="card center">
+        <div class="muted pulse">Вы выбыли из игры. Наблюдайте за развязкой.</div>
+      </div>`));
+      app.appendChild(el(`<div class="card"><h2>Журнал</h2>${logHtml(state)}</div>`));
+      return;
+    }
+
+    if(submittedIds.includes(myId)){
+      const chips = alivePlayers.map(p=> `<div class="waiting-chip ${submittedIds.includes(p.id)?'done':''}">${esc(p.name)}${submittedIds.includes(p.id)?' ✓':''}</div>`).join('');
+      app.appendChild(el(`<div class="card center">
+        <div class="muted">Ставка сделана. Ждём остальных...</div>
+        <div class="waiting-names">${chips}</div>
+      </div>`));
+      return;
+    }
+
+    const card = el(`<div class="card">
+      <h2>Ваш ход</h2>
+      <label>Ставка (1–100)</label>
+      <input id="betInput" type="number" min="1" max="100" value="${betChoice}">
+      <div class="divider"></div>
+      <label>Роль</label>
+      <div class="role-toggle">
+        <div class="role-opt angel ${roleChoice==='Ангел'?'sel':''}" id="roleAngel">Ангел</div>
+        <div class="role-opt demon ${roleChoice==='Демон'?'sel':''}" id="roleDemon">Демон</div>
+      </div>
+      <div class="divider"></div>
+      <button class="btn-gold btn-block" id="btnSubmitBet">Сделать ставку</button>
+      ${uiError? `<div class="err">${esc(uiError)}</div>`:''}
+    </div>`);
+    app.appendChild(card);
+    card.querySelector('#roleAngel').onclick = ()=>{ roleChoice='Ангел'; render(); };
+    card.querySelector('#roleDemon').onclick = ()=>{ roleChoice='Демон'; render(); };
+    card.querySelector('#btnSubmitBet').onclick = ()=>{
+      const v = parseInt(card.querySelector('#betInput').value,10);
+      betChoice = isNaN(v)?50:clamp(v,1,100);
+      submitBet(betChoice, roleChoice);
+    };
+  }
+
+  function renderReveal(app, state){
+    const lrr = state.lastRoundResult;
+    app.appendChild(el(`<div class="card"><h2>Итоги раунда ${lrr.round}</h2>
+      ${edgeTrackHtml(lrr, state)}
+      <table class="table-mini"><thead><tr><th>Игрок</th><th>Ставка</th><th>Урон</th></tr></thead><tbody>
+      ${lrr.entries.map(e=>{
+        const isWinner = lrr.winnerId===e.id;
+        const dmg = lrr.winnerId===e.id ? '—' : (lrr.tiedIds && lrr.tiedIds.includes(e.id) ? (lrr.sameBetTie? '−5':'0') : '');
+        return `<tr class="${isWinner?'winner-row':''}"><td>${esc(e.name)}${isWinner?' ★':''}</td><td>${e.bet}</td><td>${dmg!==''?dmg:('−'+e.diff)}</td></tr>`;
+      }).join('')}
+      </tbody></table>
+      ${lrr.winnerId && lrr.roleRevealed ? `<div class="muted" style="margin-top:10px">Роль победителя раскрыта: <b style="color:${lrr.winnerRole==='Демон'?'#e5828c':'#cf9f2e'}">${lrr.winnerRole}</b></div>` : ''}
+      ${lrr.winnerId && !lrr.roleRevealed ? `<div class="muted" style="margin-top:10px">Роль победителя пока неизвестна.</div>` : ''}
+    </div>`));
+
+    app.appendChild(el(`<div class="card">${playerListHtml(state)}</div>`));
+    app.appendChild(el(`<div class="card"><h2>Журнал</h2>${logHtml(state)}</div>`));
+
+    const card = el(`<div class="card center">
+      <button class="btn-gold btn-block" id="btnNext">Следующий раунд</button>
+    </div>`);
+    app.appendChild(card);
+    card.querySelector('#btnNext').onclick = nextRound;
+  }
+
+  function renderAccusation(app, state){
+    const lrr = state.lastRoundResult;
+    const iAmLoser = lrr.loserIds.includes(myId);
+    const iChose = !!state.accusations[myId];
+
+    app.appendChild(el(`<div class="card"><h2>Раунд ${lrr.round}: фаза решения</h2>
+      ${edgeTrackHtml(lrr, state)}
+      <div class="muted">Победитель раунда: <b style="color:var(--gold)">${esc(nameOf(state, lrr.winnerId))}</b> (ставка ${lrr.winnerBet}), T = ${lrr.T}. Роль пока скрыта.</div>
+    </div>`));
+
+    if(iAmLoser && !iChose){
+      const card = el(`<div class="card">
+        <h2>Ваше решение</h2>
+        <p class="muted">Вы проиграли этот раунд. Обвинить победителя в том, что он Демон, или смириться?</p>
+        <div class="row">
+          <button class="btn-crimson" id="btnAccuse" style="flex:1">Победитель одержим!</button>
+          <button class="btn-ghost" id="btnSubmit" style="flex:1">Смириться</button>
+        </div>
+      </div>`);
+      app.appendChild(card);
+      card.querySelector('#btnAccuse').onclick = ()=>submitAccusation('accuse');
+      card.querySelector('#btnSubmit').onclick = ()=>submitAccusation('submit');
+    } else if(iAmLoser && iChose){
+      app.appendChild(el(`<div class="card center"><div class="muted pulse">Решение принято. Ждём остальных...</div></div>`));
+    } else {
+      app.appendChild(el(`<div class="card center"><div class="muted pulse">Проигравшие решают судьбу победителя...</div></div>`));
+    }
+
+    app.appendChild(el(`<div class="card">${playerListHtml(state)}</div>`));
+    app.appendChild(el(`<div class="card"><h2>Журнал</h2>${logHtml(state)}</div>`));
+  }
+
+  function renderGameOver(app, state){
+    app.appendChild(el(`<div class="card center">
+      <h2 style="justify-content:center">Игра окончена</h2>
+      <div class="big-num">${state.winnerName ? esc(state.winnerName) : '— никто —'}</div>
+      <div class="muted">${state.winnerName? 'выжил в пропасти.' : 'пропасть забрала всех.'}</div>
+    </div>`));
+    app.appendChild(el(`<div class="card">${playerListHtml(state)}</div>`));
+    app.appendChild(el(`<div class="card"><h2>Журнал</h2>${logHtml(state)}</div>`));
+    const card = el(`<div class="card center">
+      ${myId===state.hostId ? `<button class="btn-gold btn-block" id="btnAgain">Играть заново (тот же состав)</button>` : `<div class="muted">Ждём решения хозяина комнаты...</div>`}
+    </div>`);
+    app.appendChild(card);
+    if(myId===state.hostId){ card.querySelector('#btnAgain').onclick = playAgain; }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
